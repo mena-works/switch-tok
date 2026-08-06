@@ -1,0 +1,28 @@
+build/
+cmake-build-*/
+*.nro
+*.nacp
+*.elf
+*.map
+
+# borealis resources are copied in at configure time
+romfs/font/
+romfs/i18n/
+romfs/icon/
+romfs/img/
+romfs/material/
+romfs/xml/
+
+server/media/
+__pycache__/
+
+# TikTok session cookie. Never commit, never upload.
+.sessionid
+
+# Console keys and firmware. These identify a specific Switch, are illegal to
+# distribute, and have no business in a source tree.
+prod.keys
+title.keys
+*.keys
+firmware/
+ryujinx*/

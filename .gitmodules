@@ -1,0 +1,4 @@
+[submodule "lib/borealis"]
+	path = lib/borealis
+	url = https://github.com/xfangfang/borealis.git
+	branch = wiliwili
