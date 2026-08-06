@@ -20,15 +20,15 @@ Yardımcı makine yok. `.nro` kendi kendine yeter:
   libmpv   : demux, decode, A/V sync, ses, cache
 ```
 
-### Oturum Açma (PIN Login) ve Vercel Entegrasyonu
+### Oturum Açma (PIN Login) ve Chrome Eklentisi
 
-TikTok'un sıkı güvenlik duvarları (WAF) nedeniyle Switch uygulamasından doğrudan şifre girerek oturum açmak mümkün değildir. Bu engeli aşmak için **Bookmarklet** tabanlı bir Vercel Köprüsü (Bridge) geliştirilmiştir.
+TikTok'un sıkı güvenlik duvarları (WAF) nedeniyle Switch uygulamasından doğrudan şifre girerek oturum açmak mümkün değildir. Bu engeli HttpOnly korumasına takılmadan aşmak için **Özel Chrome Eklentisi (Extension)** ve bir Vercel Köprüsü (Bridge) geliştirilmiştir.
 
-Uygulamanın içindeki **`switch-feed-web`** klasörü bir Next.js projesidir ve Vercel'e (veya benzeri bir sunucuya) dağıtılabilir.
-1. Telefonunuzun veya bilgisayarınızın tarayıcısından `tok.menaworks.xyz/login` (kendi Vercel siteniz) adresine gidin.
-2. Ekranda verilen JavaScript Yer İmini (Bookmarklet) tarayıcınıza kaydedin.
-3. TikTok'a giriş yapıp bu yer imine tıkladığınızda, siteniz size 6 haneli bir PIN kodu verecektir.
-4. Switch uygulamasında **Sağ Analoğa (R3)** tıklayarak bu 6 haneli PIN'i girdiğinizde, uygulama arka planda `sessionid`'nizi çeker ve "Sizin İçin" akışınıza erişim sağlar!
+Uygulamanın içindeki **`switch-feed-web`** klasörü bir Next.js projesidir (tok.menaworks.xyz), **`chrome-extension`** klasörü ise eklentidir.
+1. Bilgisayarınızın Chrome tarayıcısında (Geliştirici Modu ile) `chrome-extension` klasörünü paketlenmemiş eklenti olarak kurun.
+2. Tarayıcıdan tiktok.com'a kendi hesabınızla giriş yapın.
+3. Eklentiye tıklayıp "Oturumu Aktar (PIN Al)" butonuna bastığınızda, sistem size **6 haneli bir PIN kodu** verecektir.
+4. Switch uygulamasında **`Y` tuşuna** basarak bu 6 haneli PIN'i girdiğinizde, uygulama arka planda `sessionid`'nizi çeker ve "Sizin İçin" akışınıza kalıcı erişim sağlar!
 
 ### Neden bu yol, doğrudan tiktok.com değil
 
