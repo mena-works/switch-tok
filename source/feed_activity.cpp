@@ -230,7 +230,7 @@ brls::View* FeedActivity::createContentView()
         false, true);
 
     root->registerAction(
-        "Refresh", brls::BUTTON_Y,
+        "Refresh", brls::BUTTON_LT,
         [this](brls::View*) {
             video->flashStatus("refreshing...");
             restart();
@@ -243,7 +243,7 @@ brls::View* FeedActivity::createContentView()
         false);
 
     root->registerAction(
-        "Login", brls::BUTTON_START, [this](brls::View*) { openLogin(); return true; }, false,
+        "Login", brls::BUTTON_Y, [this](brls::View*) { openLogin(); return true; }, false,
         false);
 
     root->registerAction(
