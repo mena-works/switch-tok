@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getStore } from '../store';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -9,15 +8,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Eksik PIN' }, { status: 400 });
   }
 
-  const store = getStore();
-  const data = store.get(pin);
+  try {
+    const response = await fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/switch_tok_pin_store_v2/${pin}`);
+    let sid = await response.text();
 
-  if (!data) {
-    return NextResponse.json({ error: 'Geçersiz veya süresi dolmuş PIN' }, { status: 404 });
+    // Temizle (tırnak işaretlerini veya boşlukları)
+    sid = sid.replace(/"/g, '').trim();
+
+    if (!sid || sid === '' || sid === 'deleted' || sid.includes('Not Found')) {
+      return NextResponse.json({ error: 'Geçersiz veya süresi dolmuş PIN' }, { status: 404 });
+    }
+
+    // Güvenlik için PIN'i tek kullanımlık yap (deleted olarak işaretle)
+    await fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/switch_tok_pin_store_v2/${pin}/deleted`, { method: 'POST' });
+
+    return NextResponse.json({ sessionid: sid });
+  } catch (err) {
+    return NextResponse.json({ error: 'Veritabanı bağlantı hatası' }, { status: 500 });
   }
-
-  // PIN tek kullanımlık olmalı
-  store.delete(pin);
-
-  return NextResponse.json({ sessionid: data.sessionid });
 }
