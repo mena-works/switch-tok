@@ -1,7 +1,7 @@
-# switch-feed
+# switch-tok
 
 Nintendo Switch (Tegra X1 / Atmosphère) için dikey kaydırmalı video akışı istemcisi.
-UI için **borealis**, oynatma için **libmpv**, besleme için **kendi sunucun**.
+UI için **borealis**, oynatma için **libmpv**, besleme için **kendi sunucun** veya **TikTok PIN Login**.
 
 ## Mimari
 
@@ -19,6 +19,16 @@ Yardımcı makine yok. `.nro` kendi kendine yeter:
   borealis : UI, girdi, fokus
   libmpv   : demux, decode, A/V sync, ses, cache
 ```
+
+### Oturum Açma (PIN Login) ve Vercel Entegrasyonu
+
+TikTok'un sıkı güvenlik duvarları (WAF) nedeniyle Switch uygulamasından doğrudan şifre girerek oturum açmak mümkün değildir. Bu engeli aşmak için **Bookmarklet** tabanlı bir Vercel Köprüsü (Bridge) geliştirilmiştir.
+
+Uygulamanın içindeki **`switch-feed-web`** klasörü bir Next.js projesidir ve Vercel'e (veya benzeri bir sunucuya) dağıtılabilir.
+1. Telefonunuzun veya bilgisayarınızın tarayıcısından `tiktok.menaworks.xyz/login` (kendi Vercel siteniz) adresine gidin.
+2. Ekranda verilen JavaScript Yer İmini (Bookmarklet) tarayıcınıza kaydedin.
+3. TikTok'a giriş yapıp bu yer imine tıkladığınızda, siteniz size 6 haneli bir PIN kodu verecektir.
+4. Switch uygulamasında **Sağ Analoğa (R3)** tıklayarak bu 6 haneli PIN'i girdiğinizde, uygulama arka planda `sessionid`'nizi çeker ve "Sizin İçin" akışınıza erişim sağlar!
 
 ### Neden bu yol, doğrudan tiktok.com değil
 
