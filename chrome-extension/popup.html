@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { 
+      width: 250px; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 15px; 
+      text-align: center;
+      background: #f8f9fa;
+      margin: 0;
+    }
+    h3 { margin-top: 0; color: #111; }
+    button { 
+      background: #fe2c55; 
+      color: white; 
+      border: none; 
+      padding: 12px 15px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      width: 100%; 
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    button:hover { background: #e0284c; }
+    #result { 
+      margin-top: 20px; 
+      font-size: 32px; 
+      font-weight: 900; 
+      letter-spacing: 4px; 
+      color: #111; 
+    }
+    #status { 
+      margin-top: 15px; 
+      font-size: 13px; 
+      color: #555; 
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <h3>Switch-Tok Login</h3>
+  <button id="loginBtn">Oturumu Aktar (PIN Al)</button>
+  <div id="result"></div>
+  <div id="status">TikTok'a giriş yaptığınızdan emin olun.</div>
+  <script src="popup.js"></script>
+</body>
+</html>
