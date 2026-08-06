@@ -80,7 +80,7 @@ void FeedActivity::openLogin()
             if (text.empty()) return;
             
             video->flashStatus("Logging in with PIN...");
-            std::string url = "https://tiktok.menaworks.xyz/api/get?pin=" + net::urlEncode(text);
+            std::string url = "https://tok.menaworks.xyz/api/get?pin=" + net::urlEncode(text);
             
             auto token = alive;
             runDetached([this, url, token]() {
@@ -113,7 +113,7 @@ void FeedActivity::openLogin()
                 }
             });
         },
-        "TikTok Login PIN", "tiktok.menaworks.xyz/login adresinden aldiginiz PIN'i girin", 6, "");
+        "TikTok Login PIN", "tok.menaworks.xyz/login adresinden aldiginiz PIN'i girin", 6, "");
 }
 
 void FeedActivity::cycleRegion()
