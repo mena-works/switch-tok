@@ -71,34 +71,7 @@ bool splitHost(const std::string& url, std::string& host, std::string& port);
 
 static std::string g_sessionId;
 
-void loadSessionId()
-{
-    const char* paths[] = {
-        "sdmc:/switch/switch-tok.sessionid",
-        "sdmc:/switch-tok.sessionid",
-        ".sessionid"
-    };
 
-    for (const char* path : paths)
-    {
-        if (FILE* file = fopen(path, "rb"))
-        {
-            char buffer[256] = {0};
-            size_t got = fread(buffer, 1, sizeof(buffer) - 1, file);
-            fclose(file);
-
-            std::string content(buffer, got);
-            content.erase(std::remove_if(content.begin(), content.end(), ::isspace), content.end());
-
-            if (!content.empty())
-            {
-                g_sessionId = content;
-                brls::Logger::info("sessionid loaded from {}", path);
-                return;
-            }
-        }
-    }
-}
 
 // Undoes Transfer-Encoding: chunked.
 //
@@ -310,6 +283,35 @@ int debugCallback(CURL*, curl_infotype type, char* data, size_t size, void*)
 
 namespace net
 {
+
+void loadSessionId()
+{
+    const char* paths[] = {
+        "sdmc:/switch/switch-tok.sessionid",
+        "sdmc:/switch-tok.sessionid",
+        ".sessionid"
+    };
+
+    for (const char* path : paths)
+    {
+        if (FILE* file = fopen(path, "rb"))
+        {
+            char buffer[256] = {0};
+            size_t got = fread(buffer, 1, sizeof(buffer) - 1, file);
+            fclose(file);
+
+            std::string content(buffer, got);
+            content.erase(std::remove_if(content.begin(), content.end(), ::isspace), content.end());
+
+            if (!content.empty())
+            {
+                g_sessionId = content;
+                brls::Logger::info("sessionid loaded from {}", path);
+                return;
+            }
+        }
+    }
+}
 
 void globalInit()
 {

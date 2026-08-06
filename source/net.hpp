@@ -9,6 +9,7 @@ namespace net
 
 void globalInit();
 void globalExit();
+void loadSessionId();
 
 // Blocking GET into memory. Returns false on any transport or HTTP >= 400 error.
 //
