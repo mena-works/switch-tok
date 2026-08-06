@@ -8,7 +8,7 @@
 namespace
 {
 
-constexpr const char* kPath = "sdmc:/switch/switch-feed.json";
+constexpr const char* kPath = "sdmc:/switch/switch-tok.json";
 
 settings::Values values;
 

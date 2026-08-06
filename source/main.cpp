@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     // emulator exposes on the host filesystem and a console keeps for later.
     if (nxlinkFd < 0)
     {
-        if (FILE* logFile = fopen("sdmc:/switch-feed.log", "w"))
+        if (FILE* logFile = fopen("sdmc:/switch-tok.log", "w"))
         {
             setvbuf(logFile, nullptr, _IOLBF, 0);
             brls::Logger::setLogOutput(logFile);
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     }
 
     brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
-    brls::Logger::info("switch-feed starting");
+    brls::Logger::info("switch-tok starting");
 
     net::globalInit();
     brls::Logger::info("curl ready");
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     }
     brls::Logger::info("borealis init ok");
 
-    brls::Application::createWindow("switch-feed");
+    brls::Application::createWindow("switch-tok");
     brls::Application::setGlobalQuit(true);
     brls::Logger::info("window created");
 

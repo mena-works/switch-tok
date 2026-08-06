@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Feed service for switch-feed.
+"""Feed service for switch-tok.
 
 The console asks this for a list of clips and then streams them over plain
 HTTP. Everything fragile -- scraping, request signing, rate limits -- belongs

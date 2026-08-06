@@ -91,7 +91,7 @@ void FeedActivity::openLogin()
                         if (json.contains("sessionid")) {
                             std::string sid = json["sessionid"].get<std::string>();
                             
-                            if (FILE* f = fopen("sdmc:/switch/switch-feed.sessionid", "wb")) {
+                            if (FILE* f = fopen("sdmc:/switch/switch-tok.sessionid", "wb")) {
                                 fwrite(sid.data(), 1, sid.size(), f);
                                 fclose(f);
                             }

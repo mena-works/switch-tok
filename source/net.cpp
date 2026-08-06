@@ -74,8 +74,8 @@ static std::string g_sessionId;
 void loadSessionId()
 {
     const char* paths[] = {
-        "sdmc:/switch/switch-feed.sessionid",
-        "sdmc:/switch-feed.sessionid",
+        "sdmc:/switch/switch-tok.sessionid",
+        "sdmc:/switch-tok.sessionid",
         ".sessionid"
     };
 
