@@ -243,7 +243,7 @@ brls::View* FeedActivity::createContentView()
         false);
 
     root->registerAction(
-        "Login", brls::BUTTON_X, [this](brls::View*) { openLogin(); return true; }, false,
+        "Login", brls::BUTTON_START, [this](brls::View*) { openLogin(); return true; }, false,
         false);
 
     root->registerAction(
