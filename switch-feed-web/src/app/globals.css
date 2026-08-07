@@ -38,15 +38,37 @@ body {
 
 .card {
   text-align: center;
+  position: relative;
 }
 
-/* Wordmark with the offset cyan/red shadows */
-.wordmark {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0 0 2rem;
-  text-shadow: -2px -1px 0 var(--tt-cyan), 2px 1px 0 var(--tt-red);
+.lang-toggle {
+  position: absolute;
+  top: -0.5rem;
+  right: 0;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.lang-toggle button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.4rem;
+  cursor: pointer;
+}
+
+.lang-toggle button.active {
+  color: var(--foreground);
+  border-bottom: 2px solid var(--tt-red);
+}
+
+.logo {
+  display: block;
+  margin: 0 auto 2rem;
+  border-radius: 22%;
 }
 
 .title {

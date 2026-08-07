@@ -1,3 +1,7 @@
+'use client';
+/* eslint-disable @next/next/no-img-element */
+import { LangToggle, useLang } from './lang';
+
 const EXTENSION_ZIP =
   'https://github.com/metinxsezdin/switch-tok/releases/download/v0.1.0/switch-tok-chrome-extension.zip';
 
@@ -17,21 +21,70 @@ function GithubIcon() {
   );
 }
 
+const t = {
+  tr: {
+    title: 'Oturumunu aktar',
+    subtitle: 'TikTok oturumunu Chrome eklentisiyle Nintendo Switch uygulamana taşı.',
+    download: 'Eklentiyi indir (.zip)',
+    github: "Kaynak kodu GitHub'da",
+    divider: 'nasıl kullanılır',
+    step1Title: '1) Eklentiyi kur (tek seferlik)',
+    step1: [
+      <>Yukarıdan zip&apos;i indirip bir klasöre çıkar.</>,
+      <>Chrome&apos;da (Brave/Edge de olur) adres çubuğuna <strong>chrome://extensions</strong> yaz.</>,
+      <>Sağ üstten <strong>Geliştirici Modu</strong>&apos;nu aç.</>,
+      <><strong>&quot;Paketlenmemiş öge yükle&quot;</strong> deyip çıkardığın klasörü seç.</>,
+    ],
+    step2Title: "2) PIN al ve Switch'e gir",
+    step2: [
+      <><a href="https://www.tiktok.com" target="_blank" rel="noreferrer">tiktok.com</a>&apos;a git ve hesabına giriş yap.</>,
+      <>Araç çubuğundaki yapboz <PuzzleIcon /> ikonundan <strong>Switch-Tok Login</strong>&apos;e tıkla.</>,
+      <><strong>&quot;Oturumu Aktar (PIN Al)&quot;</strong> butonuna bas — 6 haneli PIN gelir.</>,
+      <>Switch&apos;te <strong>Y</strong> menüsünden &quot;Giriş Yap (TikTok PIN)&quot; seçeneğine girip kodu yaz.</>,
+    ],
+    footnote:
+      'Oturum bilgin yalnızca PIN eşleşmesi için köprüde bekletilir; üçüncü bir tarafa gönderilmez. Bu site TikTok ile bağlantılı değildir.',
+  },
+  en: {
+    title: 'Transfer your session',
+    subtitle: 'Carry your TikTok session over to your Nintendo Switch app with the Chrome extension.',
+    download: 'Download the extension (.zip)',
+    github: 'Source code on GitHub',
+    divider: 'how to use',
+    step1Title: '1) Install the extension (one-time)',
+    step1: [
+      <>Download the zip above and extract it to a folder.</>,
+      <>In Chrome (Brave/Edge work too), type <strong>chrome://extensions</strong> in the address bar.</>,
+      <>Enable <strong>Developer Mode</strong> in the top right.</>,
+      <>Click <strong>&quot;Load unpacked&quot;</strong> and pick the extracted folder.</>,
+    ],
+    step2Title: '2) Get a PIN and enter it on the Switch',
+    step2: [
+      <>Go to <a href="https://www.tiktok.com" target="_blank" rel="noreferrer">tiktok.com</a> and log in to your account.</>,
+      <>Click the puzzle <PuzzleIcon /> icon in the toolbar, then <strong>Switch-Tok Login</strong>.</>,
+      <>Press <strong>&quot;Oturumu Aktar (PIN Al)&quot;</strong> — you get a 6-digit PIN.</>,
+      <>On the Switch, open the <strong>Y</strong> menu, pick &quot;Giriş Yap (TikTok PIN)&quot; and enter the code.</>,
+    ],
+    footnote:
+      'Your session is held on the bridge only for PIN matching; it is never sent to a third party. This site is not affiliated with TikTok.',
+  },
+};
+
 export default function Home() {
+  const [lang, setLang] = useLang();
+  const s = t[lang];
+
   return (
     <div className="container">
       <main className="card">
-        <div className="wordmark">Switch-Tok</div>
+        <LangToggle lang={lang} onChange={setLang} />
+        <img className="logo" src="/logo.jpg" alt="Switch-Tok" width={88} height={88} />
 
-        <h1 className="title">Oturumunu aktar</h1>
-        <p className="subtitle">
-          TikTok oturumunu Chrome eklentisiyle Nintendo Switch uygulamana taşı.
-          Tarayıcı, oturum çerezini (HttpOnly) sayfalara vermediği için bu
-          aktarım yalnızca eklentiyle yapılabilir.
-        </p>
+        <h1 className="title">{s.title}</h1>
+        <p className="subtitle">{s.subtitle}</p>
 
         <a href={EXTENSION_ZIP} className="primary-btn" style={{ marginBottom: '0.75rem' }}>
-          Eklentiyi indir (.zip)
+          {s.download}
         </a>
 
         <a
@@ -41,36 +94,31 @@ export default function Home() {
           className="option-row"
         >
           <GithubIcon />
-          <span>Kaynak kodu GitHub&apos;da</span>
+          <span>{s.github}</span>
         </a>
 
-        <div className="divider">nasıl kullanılır</div>
+        <div className="divider">{s.divider}</div>
 
         <div className="steps">
           <details open>
-            <summary>1&#41; Eklentiyi kur (tek seferlik)</summary>
+            <summary>{s.step1Title}</summary>
             <ol>
-              <li>Yukarıdan zip&apos;i indirip bir klasöre çıkar.</li>
-              <li>Chrome&apos;da (Brave/Edge de olur) adres çubuğuna <strong>chrome://extensions</strong> yaz.</li>
-              <li>Sağ üstten <strong>Geliştirici Modu</strong>&apos;nu aç.</li>
-              <li><strong>&quot;Paketlenmemiş öge yükle&quot;</strong> deyip çıkardığın klasörü seç.</li>
+              {s.step1.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
             </ol>
           </details>
           <details>
-            <summary>2&#41; PIN al ve Switch&apos;e gir</summary>
+            <summary>{s.step2Title}</summary>
             <ol>
-              <li><a href="https://www.tiktok.com" target="_blank" rel="noreferrer">tiktok.com</a>&apos;a git ve hesabına giriş yap.</li>
-              <li>Araç çubuğundaki yapboz <PuzzleIcon /> ikonundan <strong>Switch-Tok Login</strong>&apos;e tıkla.</li>
-              <li><strong>&quot;Oturumu Aktar (PIN Al)&quot;</strong> butonuna bas — 6 haneli PIN gelir.</li>
-              <li>Switch&apos;te <strong>Y</strong> menüsünden &quot;Giriş Yap (TikTok PIN)&quot; seçeneğine girip kodu yaz.</li>
+              {s.step2.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
             </ol>
           </details>
         </div>
 
-        <p className="footnote">
-          Oturum bilgin yalnızca PIN eşleşmesi için köprüde bekletilir; üçüncü
-          bir tarafa gönderilmez. Bu site TikTok ile bağlantılı değildir.
-        </p>
+        <p className="footnote">{s.footnote}</p>
       </main>
     </div>
   );
