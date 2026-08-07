@@ -12,6 +12,7 @@
 #include "settings.hpp"
 #include "task.hpp"
 #include "video_view.hpp"
+#include "menu_activity.hpp"
 
 namespace
 {
@@ -239,16 +240,10 @@ brls::View* FeedActivity::createContentView()
         false, false);
 
     root->registerAction(
-        "Search", brls::BUTTON_BACK, [this](brls::View*) { openSearch(); return true; }, false,
-        false);
-
-    root->registerAction(
-        "Login", brls::BUTTON_Y, [this](brls::View*) { openLogin(); return true; }, false,
-        false);
-
-    root->registerAction(
-        "Region", brls::BUTTON_B, [this](brls::View*) { cycleRegion(); return true; }, false,
-        false);
+        "Menü", brls::BUTTON_Y, [this](brls::View*) { 
+            brls::Application::pushActivity(new MenuActivity(this));
+            return true; 
+        }, false, false);
 
     video->setContext(region);
     loadFeed(false);

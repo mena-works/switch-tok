@@ -17,6 +17,11 @@ class FeedActivity : public brls::Activity
 
     brls::View* createContentView() override;
 
+    void openSearch();
+    void cycleRegion();
+    void openLogin();
+    void restart();  // wipes the list and reloads from the top
+
   private:
     // append=false replaces the list (first load), append=true grows it.
     void loadFeed(bool append);
@@ -28,10 +33,6 @@ class FeedActivity : public brls::Activity
     // Region feed, or search results when a query is set.
     std::string feedUrl() const;
 
-    void openSearch();
-    void cycleRegion();
-    void openLogin();
-    void restart();  // wipes the list and reloads from the top
 
     std::string region;
     std::string query;
