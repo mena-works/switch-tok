@@ -1,16 +1,24 @@
 :root {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --card-bg: rgba(30, 41, 59, 0.7);
-  --card-border: rgba(255, 255, 255, 0.1);
+  --background: #121212;
+  --foreground: #ffffff;
+  --muted: rgba(255, 255, 255, 0.5);
+  --line: rgba(255, 255, 255, 0.12);
+  --tt-red: #fe2c55;
+  --tt-red-hover: #e0294d;
+  --tt-cyan: #25f4ee;
+  --row-bg: rgba(255, 255, 255, 0.04);
+  --row-bg-hover: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: "TikTok Sans", "Proxima Nova", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Arial, sans-serif;
   margin: 0;
   min-height: 100vh;
   display: flex;
@@ -18,95 +26,199 @@ body {
 }
 
 .container {
-  max-width: 800px;
+  max-width: 480px;
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem 1.25rem;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.glass-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--card-border);
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+.card {
   text-align: center;
 }
 
+/* Wordmark with the offset cyan/red shadows */
+.wordmark {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 2rem;
+  text-shadow: -2px -1px 0 var(--tt-cyan), 2px 1px 0 var(--tt-red);
+}
+
 .title {
-  font-size: 2.5rem;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
 }
 
 .subtitle {
-  color: #94a3b8;
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0 0 2rem;
+  line-height: 1.5;
 }
 
-.bookmarklet-btn {
-  display: inline-block;
-  background: var(--accent);
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 9999px;
+/* Option rows, tiktok.com/login style */
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--row-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--foreground);
+  font-size: 0.95rem;
+  font-weight: 600;
   text-decoration: none;
-  font-weight: bold;
-  font-size: 1.2rem;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  border: 2px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
 }
 
-.bookmarklet-btn:hover {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.3);
+.option-row:hover {
+  background: var(--row-bg-hover);
 }
 
-.instructions {
-  margin-top: 2rem;
+.option-row .icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.option-row span {
+  flex: 1;
+  text-align: center;
+  margin-right: 20px; /* balance the icon so the label sits centered */
+}
+
+.primary-btn {
+  display: block;
+  width: 100%;
+  background: var(--tt-red);
+  color: #fff;
+  border: none;
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.primary-btn:hover {
+  background: var(--tt-red-hover);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 1.5rem 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Collapsible instruction sections */
+.steps {
   text-align: left;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.instructions h3 {
-  margin-top: 0;
-  color: #e2e8f0;
+.steps details + details {
+  border-top: 1px solid var(--line);
 }
 
-.instructions ol {
-  margin-bottom: 0;
-  padding-left: 1.5rem;
-  color: #cbd5e1;
-  line-height: 1.6;
+.steps summary {
+  padding: 0.9rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
+.steps summary::-webkit-details-marker {
+  display: none;
+}
+
+.steps summary::after {
+  content: "›";
+  color: var(--muted);
+  font-size: 1.2rem;
+  transform: rotate(90deg);
+  transition: transform 0.15s;
+}
+
+.steps details[open] summary::after {
+  transform: rotate(-90deg);
+}
+
+.steps ol {
+  margin: 0;
+  padding: 0 1rem 1rem 2.25rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.steps a {
+  color: var(--tt-cyan);
+  text-decoration: none;
+}
+
+.steps a:hover {
+  text-decoration: underline;
+}
+
+.footnote {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 2rem;
+  line-height: 1.5;
+}
+
+/* Success page */
 .pin-display {
-  font-size: 4rem;
-  font-family: monospace;
-  letter-spacing: 0.5rem;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 1rem;
-  border-radius: 1rem;
-  color: #4ade80;
+  font-size: 3.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.75rem;
+  text-indent: 0.75rem; /* re-center: letter-spacing adds a trailing gap */
+  padding: 1.5rem 0;
   margin: 2rem 0;
-  text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--row-bg);
+  text-shadow: -3px -2px 0 var(--tt-cyan), 3px 2px 0 var(--tt-red);
 }
 
 .success-text {
-  font-size: 1.25rem;
-  color: #e2e8f0;
-  margin-bottom: 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+.error-title {
+  color: var(--tt-red);
 }

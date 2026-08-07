@@ -8,29 +8,34 @@ function SuccessContent() {
 
   if (!pin) {
     return (
-      <div className="glass-card">
-        <h1 className="title" style={{ color: '#ef4444' }}>Hata!</h1>
+      <main className="card">
+        <div className="wordmark">Switch-Tok</div>
+        <h1 className="title error-title">Hata</h1>
         <p className="success-text">Geçerli bir PIN kodu bulunamadı.</p>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="glass-card">
-      <h1 className="title">Giriş Başarılı!</h1>
-      <p className="success-text">Nintendo Switch uygulamanıza girmeniz gereken PIN Kodu:</p>
-      <div className="pin-display">
-        {pin}
-      </div>
-      <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Bu PIN kodunun geçerlilik süresi 10 dakikadır ve tek kullanımlıktır.</p>
-    </div>
+    <main className="card">
+      <div className="wordmark">Switch-Tok</div>
+      <h1 className="title">Giriş başarılı</h1>
+      <p className="success-text">
+        Switch&apos;te <strong>Y</strong> menüsünden &quot;Giriş Yap (TikTok
+        PIN)&quot; seçeneğine girip bu kodu yaz:
+      </p>
+      <div className="pin-display">{pin}</div>
+      <p className="footnote">
+        Bu PIN 10 dakika geçerlidir ve tek kullanımlıktır.
+      </p>
+    </main>
   );
 }
 
 export default function SuccessPage() {
   return (
     <div className="container">
-      <Suspense fallback={<div className="glass-card">Yükleniyor...</div>}>
+      <Suspense fallback={<div className="card">Yükleniyor...</div>}>
         <SuccessContent />
       </Suspense>
     </div>
