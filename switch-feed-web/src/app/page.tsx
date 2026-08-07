@@ -43,7 +43,7 @@ const t = {
       <>Switch&apos;te <strong>Y</strong> menüsünden &quot;Giriş Yap (TikTok PIN)&quot; seçeneğine girip kodu yaz.</>,
     ],
     footnote:
-      'Oturum bilgin yalnızca PIN eşleşmesi için köprüde bekletilir; üçüncü bir tarafa gönderilmez. Bu site TikTok ile bağlantılı değildir.',
+      'Oturum bilgin PIN eşleşmesi için yalnızca şifrelenmiş olarak ve en fazla 10 dakika bekletilir. Bu site TikTok ile bağlantılı değildir.',
   },
   en: {
     title: 'Transfer your session',
@@ -66,7 +66,7 @@ const t = {
       <>On the Switch, open the <strong>Y</strong> menu, pick &quot;Giriş Yap (TikTok PIN)&quot; and enter the code.</>,
     ],
     footnote:
-      'Your session is held on the bridge only for PIN matching; it is never sent to a third party. This site is not affiliated with TikTok.',
+      'Your session is held only in encrypted form for PIN matching, for at most 10 minutes. This site is not affiliated with TikTok.',
   },
 };
 
