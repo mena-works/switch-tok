@@ -18,4 +18,4 @@ Eklenti tarayıcınıza kuruldu!
 2. Sağ üstteki yapboz (eklentiler) ikonuna tıklayıp **Switch-Tok Login** eklentisine tıklayın.
 3. Çıkan ufak pencerede **"Oturumu Aktar (PIN Al)"** butonuna basın.
 4. Karşınıza anında **6 haneli PIN kodu** çıkacak.
-5. Bu kodu Switch cihazınızda (uygulama içindeyken Sağ Analoğa basıp) girin. İşlem tamam!
+5. Bu kodu Switch cihazınızda girin (uygulama içindeyken `Y` → "Giriş Yap (TikTok PIN)"). İşlem tamam!
