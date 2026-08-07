@@ -96,7 +96,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE -mtune=cortex-a57)
 
 nx_generate_nacp(${PROJECT_NAME}.nacp
     NAME    "switch-tok"
-    AUTHOR  "you"
+    AUTHOR  "metinsezdin"
     VERSION ${PROJECT_VERSION}
 )
 

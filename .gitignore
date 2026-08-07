@@ -16,6 +16,9 @@ romfs/xml/
 server/media/
 __pycache__/
 
+# Release zips built from build/ artifacts
+dist/
+
 # TikTok session cookie. Never commit, never upload.
 .sessionid
 
