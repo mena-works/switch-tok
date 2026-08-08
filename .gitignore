@@ -22,6 +22,18 @@ dist/
 # TikTok session cookie. Never commit, never upload.
 .sessionid
 
+# Registered TikTok TV device the bridge mints QR logins with. Sensitive like
+# the sessionid: identifies our device, invites abuse/ban if leaked. Ship it to
+# the Oracle box out-of-band (scp), never commit.
+device.json
+server/srv.log
+apk/qr_run.log
+apk/emu*.log
+apk/logcat.txt
+apk/splits/
+apk/keva_dump/
+apk/keva_global/
+
 # Console keys and firmware. These identify a specific Switch, are illegal to
 # distribute, and have no business in a source tree.
 prod.keys

@@ -25,6 +25,7 @@ from urllib.parse import urlparse, parse_qs, urlencode
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import SignerPy
+from qrlogin import QRLogin
 
 PORT = 8090
 PIN_TTL = 10 * 60
@@ -46,6 +47,17 @@ _pins = {}                    # pin -> {"sid":.., "ts":..}
 _pin_lock = threading.Lock()
 _sess = {}                    # sid -> {"idc":.., "feed":.., "feed_ts":.., "last":..}
 _sess_lock = threading.Lock()
+
+
+def _on_qr_session(sid, idc):
+    # QR-login confirmed: remember the account's idc so the very first feed
+    # fetch skips idc discovery.
+    with _sess_lock:
+        s = _sess.setdefault(sid, {})
+        s["idc"] = idc
+
+
+qrlogin = QRLogin(on_session=_on_qr_session)
 
 
 def _now():
@@ -250,6 +262,15 @@ class H(BaseHTTPRequestHandler):
             if res.get("code") != 0:
                 res = get_generic(region, count)   # rate-limited/invalid -> generic
             return self._send(200, res)
+
+        if path == "/api/qr/start":
+            return self._send(200, qrlogin.start())
+
+        if path == "/api/qr/poll":
+            qr_id = (q.get("qr_id") or [""])[0].strip()
+            if not qr_id:
+                return self._send(400, {"error": "missing qr_id"})
+            return self._send(200, qrlogin.poll(qr_id))
 
         if path == "/api/search":
             kw = (q.get("keywords") or [""])[0]
