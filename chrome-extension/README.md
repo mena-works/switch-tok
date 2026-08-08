@@ -1,6 +1,6 @@
 # Switch-Tok Login Chrome Eklentisi
 
-Bu ufacık eklenti, TikTok'un "HttpOnly" çerez korumasını aşarak `sessionid` bilgisini Vercel uygulamanıza iletmenizi ve tek tıkla Switch cihazınız için PIN kodu almanızı sağlar.
+Bu ufacık eklenti, TikTok'un "HttpOnly" çerez korumasını aşarak `sessionid` bilgisini köprü sunucusuna (tok.menaworks.xyz) iletmenizi ve tek tıkla Switch cihazınız için PIN kodu almanızı sağlar.
 
 ## Kurulum (Sadece 30 saniye sürer)
 

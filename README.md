@@ -1,9 +1,9 @@
 # switch-tok
 
 A vertical, swipe-style short-video feed client for the Nintendo Switch
-(Tegra X1 / Atmosphère). **borealis** for the UI, **libmpv** for playback,
-**tikwm.com** as the feed source, and optional **TikTok PIN login** through a
-companion Chrome extension.
+(Tegra X1 / Atmosphère). **borealis** for the UI, **libmpv** for playback, and a
+small **self-hosted bridge** that signs TikTok's mobile API so the console can
+pull your real personalized **For You** feed after a one-time login.
 
 ## Download & install
 
@@ -14,68 +14,114 @@ launch it from hbmenu.
 
 ## Architecture
 
-No helper machine. The `.nro` is self-sufficient:
+The console never talks to TikTok's signed API directly. It talks to one bridge
+host — `tok.menaworks.xyz`, a tiny always-on service — which does the signing
+and returns plain JSON:
 
 ```
   Switch (.nro)
         |
-        |  1. HTTPS GET  https://www.tikwm.com/api/feed/list?region=..&count=..
-        |     -> JSON: a direct, watermark-free mp4 URL per video
+        |  HTTPS GET https://tok.menaworks.xyz/api/foryou?count=..
+        |     header: X-Session-Id: <your sessionid>   (only when logged in)
         |     libcurl + mbedtls, CA bundle at romfs:/cacert.pem
+        v
+  bridge (server/tokserver.py, behind Caddy)
+        |  logged in : sign /aweme/v1/feed with SignerPy (X-Argus/Ladon/Gorgon)
+        |              using your sessionid -> your real For You feed
+        |  logged out: fall back to a public generic feed (tikwm)
+        v
+  JSON: { code:0, data:[ {play, video_id, title, author:{unique_id}}, ... ] }
         |
-        |  2. mpv streams that URL straight from the CDN
+        |  mpv streams each `play` URL straight from TikTok's CDN
         v
   borealis : UI, input, focus
   libmpv   : demux, decode, A/V sync, audio, cache
 ```
 
+The `play` URLs point at TikTok's CDN and are fetched directly by mpv (a bare GET
+with a User-Agent returns the MP4, Range-capable). The bridge only ever returns
+JSON — no media passes through it.
+
+### Why a bridge, and why the signing lives there
+
+TikTok's personalized feed is behind its mobile API, which rejects any request
+missing four signature headers assembled together — `X-Argus` (protobuf → SM3 →
+SIMON → AES), `X-Gorgon`, `X-Ladon`, `X-Khronos`. These are pure algorithms, but
+they **rotate periodically**. Putting them on the console would mean porting the
+whole stack to C++ and reshipping a new `.nro` every time TikTok changes it.
+
+On the bridge they are one `pip` dependency ([SignerPy](https://pypi.org/project/SignerPy/)):
+when the algorithm rotates you update the server, not the firmware. Measured
+Aug 2026: a signed `/aweme/v1/feed` call with a valid `sessionid` returns the
+real For You feed with playable MP4 URLs — verified both from a home IP and from
+the bridge's own datacenter IP, so hosting the signing server-side works.
+
+One detail the bridge handles for you: the request host must match the account's
+datacenter (`tt-target-idc`) — `api16-normal-c-<idc>.tiktokv.com`. A mismatched
+host or a request with no session gets `429 ratelimit triggered`. The bridge
+discovers the working idc by sweeping the candidates and remembers it per
+session.
+
 ### Login (PIN) and the Chrome extension
 
-TikTok's WAF makes logging in with a password from the console impossible, and
-the `sessionid` cookie is HttpOnly, so a bookmarklet can't read it either. The
-workaround is a **companion Chrome extension** plus a small Vercel bridge:
+The `sessionid` cookie is HttpOnly, so nothing running in a page — bookmarklet or
+site JS — can read it. A **companion Chrome extension** reads it and hands it to
+the bridge, which returns a short-lived PIN you type on the console:
 
-- **`switch-feed-web/`** is a Next.js app (tok.menaworks.xyz) acting as the
-  bridge.
-- **`chrome-extension/`** is the extension.
+- **`chrome-extension/`** — the extension.
+- **`switch-feed-web/`** — the login page (a static Next.js export served by the
+  bridge at `tok.menaworks.xyz`).
+- **`server/tokserver.py`** — the bridge itself (login handoff + feed signing).
 
 1. Load `chrome-extension/` as an unpacked extension in Chrome (Developer
-   Mode → "Load unpacked").
+   Mode → "Load unpacked"), or download it from the login page.
 2. Log in to tiktok.com in that browser with your own account.
 3. Click the extension and press **"Transfer session (get PIN)"** — you get a
    **6-digit PIN**.
 4. On the Switch, press **`Y` → "Log in (TikTok PIN)"** and enter the PIN. The
-   app fetches your `sessionid` in the background and your "For You" feed is
-   unlocked persistently.
+   console fetches your `sessionid` from the bridge, stores it on the SD card,
+   and every feed request from then on is personalized.
 
-### Why this route instead of tiktok.com directly
+The PIN↔sessionid handoff lives in the bridge process's memory, single-use, with
+a 10-minute TTL — no third-party datastore, and the sessionid is sent only to
+our own host (`X-Session-Id`), never to any other party.
 
-Measured (August 2026):
+### Without logging in
 
-| Endpoint | Result |
+Skip the login and the feed still works: the bridge serves a public generic feed
+(mirrored via `tikwm.com`) so first launch shows videos immediately. Logging in
+swaps that for your own For You.
+
+`tikwm` is a third party's free service used only for the logged-out fallback and
+for keyword search. It gets rate-limited and can change; the code treats a
+non-zero `code` inside an HTTP 200 as an error and surfaces it, and the personal
+feed path does not depend on it at all.
+
+## The bridge (server/tokserver.py)
+
+A single long-running Python process (stdlib HTTP + SignerPy), behind Caddy for
+automatic HTTPS. Deployed here on an Oracle Cloud "Always Free" VM as a systemd
+service, reachable at `tok.menaworks.xyz`.
+
+Routes (Caddy serves the static login UI itself and reverse-proxies `/api/*`):
+
+| Route | Purpose |
 |---|---|
-| `www.tiktok.com/@user` (full browser headers) | 1462 B **WAF challenge** — `SlardarWAF`, `_wafchallengeid` |
-| `www.tiktok.com/oembed` | 200, real JSON (but no playback URL) |
-| `api16-normal-*.tiktokv.com/aweme/v1/feed` | 429 ratelimit — no WAF, but wants device registration + signing |
-| `tikwm.com/api/feed/list` | **200, direct mp4 URLs** |
+| `GET /api/foryou?count=..` | personalized feed (needs `X-Session-Id`), generic fallback otherwise |
+| `GET /api/search?keywords=..` | keyword search (via tikwm) |
+| `GET /api/save?sid=..` | extension mints a PIN |
+| `GET /api/get?pin=..` | console redeems a PIN to a sessionid (single-use) |
 
-As a control, google/instagram/devkitpro all return full pages from the same
-machine, so this is not an IP-reputation issue: tiktok.com cuts non-browser
-clients at the WAF layer. The challenge fingerprints `navigator`, `screen`,
-canvas/WebGL; running a JS engine (QuickJS) on the console would not solve it,
-because the challenge measures exactly the fakeness of those surfaces.
+Run it anywhere with Python 3 and a domain:
 
-Measured on the CDN side: **H.264 + AAC**, **720x1280**, `moov` before `mdat`
-(faststart), and **a bare GET suffices** — no Referer, cookie or User-Agent.
+```sh
+python3 -m venv venv && ./venv/bin/pip install SignerPy
+./venv/bin/python server/tokserver.py     # listens on 127.0.0.1:8090
+```
 
-### The cost of that choice
-
-`tikwm` is a third party's free service. It gets rate-limited, can go down,
-can change its schema. The code treats that as a normal operating condition,
-not an exception: `code != 0` inside an HTTP 200 is checked separately and
-surfaces as an on-screen error. If the service disappears for good, the single
-parse function in [source/feed_activity.cpp](source/feed_activity.cpp) is what
-changes; the playback chain is unaffected.
+Then point a reverse proxy with HTTPS (Caddy, nginx) at it and set the console's
+`kApiBase` to that host. Rate limiting is real even on success, so the bridge
+caches each session's feed briefly and spaces out upstream hits.
 
 ## Why libmpv, not a hand-rolled ffmpeg pipeline
 
@@ -176,36 +222,11 @@ nxlink -s build/switch-tok.nro
 
 ## Configuration
 
-`kApiBase`, `kBatchSize`, the region list and the prefetch switch live in
-[source/config.hpp](source/config.hpp). Note that the feed service rejects an
-empty `region` with `"region empty"` instead of falling back to a default.
-
-## Optional: local server
-
-[server/feed_server.py](server/feed_server.py) is **no longer required** — a
-leftover from the first architecture. It stays in case you want to serve your
-own mp4s over LAN (Range-capable, stdlib only):
-`python3 feed_server.py --media ./media --port 8080`, then point the feed URL
-at it and return the parse to the `{"items":[...]}` schema.
-
-### Transcode profile (only if you use the local server)
-
-NVDEC is not wired up in this build, so **everything is software decode**. For
-the Cortex-A57 a baseline profile (no CABAC, no B-frames) makes a visible
-difference:
-
-```sh
-ffmpeg -i input.mp4 \
-  -vf "scale=-2:960,fps=30" \
-  -c:v libx264 -profile:v baseline -level 3.1 -preset slow -crf 24 \
-  -maxrate 2500k -bufsize 5000k -pix_fmt yuv420p \
-  -c:a aac -b:a 128k -ar 48000 -ac 2 \
-  -movflags +faststart \
-  media/out.mp4
-```
-
-`+faststart` is mandatory: it moves the moov atom to the front; without it mpv
-has to fetch the end of the file before playback can start.
+The bridge host and endpoints live in [source/config.hpp](source/config.hpp):
+`kApiBase` (default `https://tok.menaworks.xyz`) and `kBridgeHost`. If you
+self-host the bridge, change both to your domain and rebuild. `net.cpp` sends
+the `sessionid` as `X-Session-Id` only to `kBridgeHost`, and as a cookie only to
+real TikTok hosts — never to anyone else.
 
 ## Controls
 
@@ -246,20 +267,11 @@ and the handle track the finger immediately, so no latency is felt.
 
 ## Infinite feed
 
-The service does not paginate — the `cursor` parameter is ignored and **every
-call returns a completely different batch**. Measured:
-
-```
-call 1: 20 videos -> 916180, 705991, 762254...
-call 2: 16 videos -> 354006, 859412, 459284...   (same params, all new)
-```
-
-So the feed simply grows: 4 videos before the end of the list, a new batch is
-fetched in the background and appended with `video_id` duplicates dropped.
-Going forward reaches new material; going back stops at the beginning.
-
-The service may return fewer videos than `count` asked for (request 20, get
-16), so never rely on a fixed number.
+Each call returns a fresh batch rather than the next page, so the feed simply
+grows: 4 videos before the end of the list, a new batch is fetched in the
+background and appended with `video_id` duplicates dropped. Going forward reaches
+new material; going back stops at the beginning. The service may return fewer
+videos than `count` asked for, so never rely on a fixed number.
 
 ## Backend assumptions
 
@@ -288,19 +300,18 @@ Run on a real console (fw 19.0.1, Atmosphère 1.8.0, title takeover):
 - **The mpv render context is created on top of borealis's GL context** — the
   riskiest assumption, and it held
 - HTTPS from the console: DNS, TCP, TLS handshake, reading `romfs:/cacert.pem`
-- The feed is fetched and parsed on device: ~70 KB, 20 videos
+- The feed is fetched and parsed on device
 - **Video renders on screen** (mpv → FBO → nanovg) and ↑/↓ navigation between
   videos works
 
 ### The feed's shape is not uniform
 
-In one 20-video sample, one record's `author.unique_id` came back as an
-**object** instead of a string. nlohmann's `value(key, default)` throws on a
-type mismatch, so one malformed record used to take down the whole feed.
-
-`readString()` in [source/feed_activity.cpp](source/feed_activity.cpp) reads
-every field with a type check. A third-party source offers no schema
-guarantee; one odd record must not cost the other nineteen.
+A third-party source offers no schema guarantee — in one sample a record's
+`author.unique_id` came back as an object instead of a string, and nlohmann's
+`value(key, default)` throws on a type mismatch, so one malformed record used to
+take down the whole feed. `readString()` in
+[source/feed_activity.cpp](source/feed_activity.cpp) reads every field with a
+type check; one odd record must not cost the other nineteen.
 
 ### Aspect ratio: scale in exactly one place
 
@@ -367,34 +378,6 @@ any navigation pattern.
 The cache is an accelerator, not a dependency: if swiping outruns the
 download, `uriFor` silently falls back to the CDN URL.
 
-## Why there is no native password login
-
-Researched and measured (August 2026). The obstacle to a personalized
-"For You" feed is not the cookie, it is the **request signature**:
-
-| Route | Result |
-|---|---|
-| Web endpoints + cookie | WAF challenge — closed |
-| Mobile endpoints, full app params, unsigned | `429 ratelimit` |
-| Cookie alone | Not enough; the signature is required independently of the session |
-| Official Display API (OAuth) | Works, but only your own videos; no feed |
-
-The mobile API demands four headers **together**: `X-Argus` (protobuf → SM3 →
-SIMON → AES), `X-Gorgon`, `X-Ladon`, `X-Khronos`. X-Gorgon alone no longer
-suffices.
-
-These are pure algorithms — no native `.so`, no remote signing service — so
-they could be ported to C++, and AES is already in mbedtls. In other words it
-is **technically possible**. The reason it isn't done is cost: the protobuf
-field layout must match exactly, the algorithms rotate periodically and each
-rotation means re-porting, and unusual client signatures can get a real
-account flagged.
-
-That is why login works by **carrying the session cookie** instead (the same
-approach academic tools like traktok use): you log in inside your own browser,
-the extension hands the `sessionid` to the console via a PIN, and it stays on
-the SD card — never sent to any third party.
-
 ## Known gaps
 
 - **Decode headroom.** The source is 720x1280 H.264 and NVDEC is not wired up
@@ -403,27 +386,22 @@ the SD card — never sent to any third party.
   downscaling with `--vf=scale`.
 - **Stream interruptions.** The log occasionally shows `mpv/ffmpeg: tls:
   mbedtls_ssl_read returned -0x0` followed by `Packet corrupt` / `Invalid NAL
-  unit size`; mpv reconnects and recovers. The clip cache's socket contention
-  was suspected first, but **it persists with prefetch fully disabled** — so
-  the cause is not the app. A PC on the same network (Ethernet) gets clean CDN
-  responses while the console is on WiFi; the difference is probably there.
-- **Audio loop artifact (cosmetic).** Every loop wrap logs
-  `ao/hos: audio end or underrun` → `starting AO` → `Error writing audio to
-  device`. Audible output is unaffected; the audio stream ends as the clip
-  wraps, the AO reopens and loses one write in that instant.
-  `audio-stream-silence=yes` was tried, **did not fix it**, and mpv itself
-  warns the option breaks some player behaviors — so it is not used.
+  unit size`; mpv reconnects and recovers. It persists with prefetch fully
+  disabled, so the cause is not the app — a PC on the same network (Ethernet)
+  gets clean CDN responses while the console is on WiFi.
+- **Signing rotation.** The mobile-API signature algorithms change from time to
+  time. When they do, `pip install -U SignerPy` on the bridge (or a patch) is
+  the fix — the console is unaffected.
 - **romfs bloat.** CMake copies `lib/borealis/resources/` wholesale, which
-  includes borealis demo assets (`img/pokemon/`, `img/tiles.png`, `xml/`).
-  `img/sys/` is needed (status bar icons), the rest could be dropped for a
-  ~1.9 MB saving.
+  includes borealis demo assets. `img/sys/` is needed (status bar icons), the
+  rest could be dropped for a ~1.9 MB saving.
 
 ## Notes
 
 - This is a homebrew project: it requires Atmosphère, cannot ship on the
   eShop, and carries a ban risk.
-- Wiring up a real TikTok source violates TikTok's terms of service. The
-  official API (Display API) only returns the authorizing user's own videos;
-  the "For You" feed is not public.
+- Using the personalized feed drives TikTok's mobile API with your own session
+  and violates TikTok's terms of service; unusual client signatures can get an
+  account flagged. Use an account you are willing to risk.
 - Reference implementation: [wiliwili](https://github.com/xfangfang/wiliwili)
   — same stack (borealis + libmpv), production quality.
