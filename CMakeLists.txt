@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.15)
 #   cmake --build build
 # See README.md for the package prerequisites.
 
-project(switch-tok VERSION 0.1.0 LANGUAGES C CXX)
+project(switch-tok VERSION 0.2.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -96,7 +96,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE -mtune=cortex-a57)
 
 nx_generate_nacp(${PROJECT_NAME}.nacp
     NAME    "switch-tok"
-    AUTHOR  "metinsezdin"
+    AUTHOR  "menaworks"
     VERSION ${PROJECT_VERSION}
 )
 

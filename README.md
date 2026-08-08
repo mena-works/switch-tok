@@ -69,7 +69,7 @@ site JS — can read it. A **companion Chrome extension** reads it and hands it 
 the bridge, which returns a short-lived PIN you type on the console:
 
 - **`chrome-extension/`** — the extension.
-- **`switch-feed-web/`** — the login page (a static Next.js export served by the
+- **`switch-tok-web/`** — the login page (a static Next.js export served by the
   bridge at `tok.menaworks.xyz`).
 - **`server/tokserver.py`** — the bridge itself (login handoff + feed signing).
 
