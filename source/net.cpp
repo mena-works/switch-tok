@@ -71,6 +71,29 @@ bool splitHost(const std::string& url, std::string& host, std::string& port);
 
 static std::string g_sessionId;
 
+// The sessionid is a TikTok account credential. It must only ever be attached
+// to a request that actually goes to TikTok -- never to the tikwm.com mirror or
+// any other third party, which do not use it and would simply be handed a live
+// session cookie. Gate every cookie site on this rather than trusting callers.
+bool isTikTokHost(const std::string& url)
+{
+    std::string host, port;
+    if (!splitHost(url, host, port))
+        return false;
+
+    std::transform(host.begin(), host.end(), host.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    auto endsWith = [&](const char* suffix) {
+        const std::string s = suffix;
+        return host.size() >= s.size() &&
+               host.compare(host.size() - s.size(), s.size(), s) == 0;
+    };
+
+    return endsWith(".tiktok.com") || host == "tiktok.com" ||
+           endsWith(".tiktokv.com") || endsWith(".byteoversea.com");
+}
+
 
 
 // Undoes Transfer-Encoding: chunked.
@@ -149,7 +172,7 @@ bool fetchWithoutPoll(CURL* curl, const std::string& url, std::vector<uint8_t>& 
                                 "Accept-Encoding: identity\r\n"
                                 "Connection: close\r\n";
 
-    if (!g_sessionId.empty())
+    if (!g_sessionId.empty() && isTikTokHost(url))
         request += "Cookie: sessionid=" + g_sessionId + "\r\n";
 
     request += "\r\n";
@@ -359,11 +382,10 @@ bool get(const std::string& url, std::vector<uint8_t>& out, long timeoutSeconds,
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_CAINFO, kCaBundle);
     
-    if (!g_sessionId.empty())
+    if (!g_sessionId.empty() && isTikTokHost(url))
     {
-        // curl_easy_setopt expects a pointer that remains valid, but since we build it once
-        // or just rely on curl copying it? Actually CURLOPT_COOKIE copies the string.
-        static std::string cookieHeader = "sessionid=" + g_sessionId;
+        // CURLOPT_COOKIE copies the string, so a local is fine.
+        const std::string cookieHeader = "sessionid=" + g_sessionId;
         curl_easy_setopt(curl, CURLOPT_COOKIE, cookieHeader.c_str());
     }
 
