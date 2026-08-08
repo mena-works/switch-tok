@@ -49,9 +49,11 @@ std::string FeedActivity::feedUrl() const
     const std::string count = std::to_string(kBatchSize);
 
     if (!query.empty())
-        return base + "/api/feed/search?keywords=" + net::urlEncode(query) + "&count=" + count;
+        return base + "/api/search?keywords=" + net::urlEncode(query) + "&count=" + count;
 
-    return base + "/api/feed/list?region=" + region + "&count=" + count;
+    // Personalised when the bridge sees our sessionid (sent as X-Session-Id by
+    // net::get), generic otherwise. region is a hint for the generic fallback.
+    return base + "/api/foryou?region=" + region + "&count=" + count;
 }
 
 void FeedActivity::restart()

@@ -10,7 +10,16 @@
 // It is someone else's free service. Rate limits and downtime are normal
 // operating conditions here, not exceptions; a failed fetch must not look like
 // a crash.
-constexpr const char* kApiBase = "https://www.tikwm.com";
+// Our own bridge on the Oracle box (Caddy -> Python + SignerPy). It signs the
+// mobile API call and returns the personalised "For You" feed when the console
+// sends its sessionid, and falls back to a public generic feed when it has none.
+// The console talks only to this host; the raw sessionid never goes anywhere
+// else. See server/tokserver.py.
+constexpr const char* kApiBase = "https://tok.menaworks.xyz";
+
+// The exact host of kApiBase. net.cpp attaches the X-Session-Id header only to
+// this host (never to a third party), the mirror of isTikTokHost's cookie gate.
+constexpr const char* kBridgeHost = "tok.menaworks.xyz";
 
 constexpr int kBatchSize = 20;
 

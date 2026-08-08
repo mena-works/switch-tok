@@ -13,6 +13,7 @@
 #include <curl/curl.h>
 #include <switch.h>
 
+#include "config.hpp"
 #include "dns.hpp"
 
 namespace
@@ -92,6 +93,19 @@ bool isTikTokHost(const std::string& url)
 
     return endsWith(".tiktok.com") || host == "tiktok.com" ||
            endsWith(".tiktokv.com") || endsWith(".byteoversea.com");
+}
+
+// Our own bridge (kBridgeHost). It is trusted with the sessionid -- it signs the
+// TikTok call on our behalf -- so the credential is handed to it as the
+// X-Session-Id header, and to nowhere else.
+bool isBridgeHost(const std::string& url)
+{
+    std::string host, port;
+    if (!splitHost(url, host, port))
+        return false;
+    std::transform(host.begin(), host.end(), host.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return host == kBridgeHost;
 }
 
 
@@ -389,6 +403,17 @@ bool get(const std::string& url, std::vector<uint8_t>& out, long timeoutSeconds,
         curl_easy_setopt(curl, CURLOPT_COOKIE, cookieHeader.c_str());
     }
 
+    // Hand the sessionid to our own bridge as a header so it can sign the "For
+    // You" request. CURLOPT_HTTPHEADER does not copy the list, so it must outlive
+    // the transfer -- freed after curl_easy_cleanup below.
+    curl_slist* bridgeHeaders = nullptr;
+    if (!g_sessionId.empty() && isBridgeHost(url))
+    {
+        const std::string h = "X-Session-Id: " + g_sessionId;
+        bridgeHeaders = curl_slist_append(nullptr, h.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, bridgeHeaders);
+    }
+
     // The feed works with any User-Agent -- an early timeout here turned out to
     // be transient, not a rejection. A browser string is kept anyway because the
     // endpoint sits behind Cloudflare, which is friendlier to one.
@@ -439,6 +464,8 @@ bool get(const std::string& url, std::vector<uint8_t>& out, long timeoutSeconds,
 
                 if (resolved)
                     curl_slist_free_all(resolved);
+                if (bridgeHeaders)
+                    curl_slist_free_all(bridgeHeaders);
                 curl_easy_cleanup(curl);
                 return manualStatus < 400;
             }
@@ -453,6 +480,8 @@ bool get(const std::string& url, std::vector<uint8_t>& out, long timeoutSeconds,
 
     if (resolved)
         curl_slist_free_all(resolved);
+    if (bridgeHeaders)
+        curl_slist_free_all(bridgeHeaders);
 
     if (result != CURLE_OK)
     {
